@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_create_event"
+        android:icon="@android:drawable/ic_menu_add"
+        android:title="Create Event" />
+    <item
+        android:id="@+id/nav_upcoming_events"
+        android:icon="@android:drawable/ic_menu_today"
+        android:title="Upcoming Events" />
+</menu>
