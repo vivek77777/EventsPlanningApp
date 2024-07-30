@@ -11,5 +11,9 @@
         <item>Festival</item>
         <item>Workshop</item>
         <item>Conference</item>
+        <item>Meeting</item>
+        <item>Party</item>
+        <item>Seminar</item>
     </string-array>
+
 </resources>

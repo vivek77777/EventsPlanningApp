@@ -13,10 +13,10 @@ class EventsViewModel : ViewModel() {
     val filteredEvents: LiveData<List<Event>> get() = _filteredEvents
 
     fun addEvent(event: Event) {
-        _events.value?.add(event)
-        _events.value = _events.value
-        // Update filtered events
-        _filteredEvents.value = _events.value
+        _events.value?.apply {
+            add(event)
+            _filteredEvents.value = this // Update filtered events
+        }
     }
 
     fun filterEventsByType(type: String) {

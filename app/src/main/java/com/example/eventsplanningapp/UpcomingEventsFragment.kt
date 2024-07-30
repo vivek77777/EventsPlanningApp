@@ -48,7 +48,6 @@ class UpcomingEventsFragment : Fragment() {
         spinnerOptions.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View?, position: Int, id: Long) {
                 val selectedType = eventTypes[position]
-                // Implement filtering logic based on selectedType
                 viewModel.filterEventsByType(selectedType)
             }
 

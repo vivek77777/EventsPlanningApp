@@ -12,9 +12,19 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import java.util.Calendar
+import com.example.eventsplanningapp.R
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CreateEventFragment : Fragment() {
+
+    private lateinit var editTextEventName: EditText
+    private lateinit var buttonSelectDate: Button
+    private lateinit var buttonClear: Button
+    private lateinit var buttonCreateEvent: Button
+    private lateinit var spinnerEventType: Spinner
+    private lateinit var selectedDate: String
+    private val calendar = Calendar.getInstance()
 
     private val viewModel: EventsViewModel by activityViewModels()
 
@@ -22,63 +32,69 @@ class CreateEventFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_create_event, container, false)
+        return inflater.inflate(R.layout.fragment_create_event, container, false)
+    }
 
-        val editTextEventName = view.findViewById<EditText>(R.id.editTextEventName)
-        val buttonSelectDate = view.findViewById<Button>(R.id.buttonSelectDate)
-        val spinnerEventType = view.findViewById<Spinner>(R.id.spinnerEventType)
-        val buttonCreateEvent = view.findViewById<Button>(R.id.buttonCreateEvent)
-        val buttonClear = view.findViewById<Button>(R.id.buttonClear)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        // Set up the spinner with event types
-        val eventTypes = arrayOf("Festival", "Workshop", "Conference", "Meeting", "Party", "Seminar")
+        editTextEventName = view.findViewById(R.id.editTextEventName)
+        buttonSelectDate = view.findViewById(R.id.buttonSelectDate)
+        buttonClear = view.findViewById(R.id.buttonClear)
+        buttonCreateEvent = view.findViewById(R.id.buttonCreateEvent)
+        spinnerEventType = view.findViewById(R.id.spinnerEventType)
+
+        // Populate Spinner
+        val eventTypes = resources.getStringArray(R.array.event_types_array)
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, eventTypes)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerEventType.adapter = adapter
 
-        // Set up date picker dialog
         buttonSelectDate.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val datePickerDialog = DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val selectedDate = "${dayOfMonth}/${month + 1}/$year"
-                    buttonSelectDate.text = selectedDate
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            )
-            datePickerDialog.show()
+            showDatePickerDialog()
         }
 
-        // Create event button click listener
-        buttonCreateEvent.setOnClickListener {
-            val eventName = editTextEventName.text.toString()
-            val eventDate = buttonSelectDate.text.toString()
-            val eventType = spinnerEventType.selectedItem.toString()
-
-            if (eventName.isNotBlank() && eventDate != getString(R.string.select_date)) {
-                val newEvent = Event(eventName, eventDate, eventType)
-                viewModel.addEvent(newEvent)
-                Toast.makeText(requireContext(), "Event created!", Toast.LENGTH_SHORT).show()
-                clearInputs(editTextEventName, buttonSelectDate, spinnerEventType)
-            } else {
-                Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        // Clear button click listener
         buttonClear.setOnClickListener {
-            clearInputs(editTextEventName, buttonSelectDate, spinnerEventType)
+            editTextEventName.text.clear()
+            spinnerEventType.setSelection(0)
+            buttonSelectDate.text = "Select Date" // Reset the button text
+            selectedDate = "" // Clear the selected date
         }
 
-        return view
+        buttonCreateEvent.setOnClickListener {
+            createEvent()
+        }
     }
 
-    private fun clearInputs(editText: EditText, button: Button, spinner: Spinner) {
-        editText.text.clear()
-        button.text = getString(R.string.select_date)
-        spinner.setSelection(0)
+    private fun showDatePickerDialog() {
+        val dateSetListener = DatePickerDialog.OnDateSetListener { _, year, month, day ->
+            calendar.set(year, month, day)
+            val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
+            selectedDate = dateFormat.format(calendar.time)
+            buttonSelectDate.text = selectedDate
+        }
+        DatePickerDialog(
+            requireContext(), dateSetListener,
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+
+    private fun createEvent() {
+        val eventName = editTextEventName.text.toString()
+        val eventType = spinnerEventType.selectedItem.toString()
+        if (eventName.isNotEmpty() && selectedDate.isNotEmpty()) {
+            val event = Event(eventName, selectedDate, eventType)
+            viewModel.addEvent(event) // Add event to ViewModel
+            Toast.makeText(requireContext(), "Event Created Successfully", Toast.LENGTH_SHORT).show()
+            // Optionally navigate back or reset fields
+            editTextEventName.text.clear()
+            spinnerEventType.setSelection(0)
+            buttonSelectDate.text = "Select Date"
+            selectedDate = ""
+        } else {
+            Toast.makeText(requireContext(), "Please fill all fields", Toast.LENGTH_SHORT).show()
+        }
     }
 }
